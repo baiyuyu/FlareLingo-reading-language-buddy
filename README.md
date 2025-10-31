@@ -1,188 +1,250 @@
-# Dutch Vocabulary Highlighter
+# FlareLingo – Reading Language Buddy
 
-A Chrome extension to help users learn Dutch vocabulary while browsing Dutch websites. Features local AI-powered examples, grammar analysis, and real-time translation using Chrome's built-in AI APIs.
+🌟 **A Chrome extension that transforms any webpage into an intelligent Dutch learning environment using browser-native AI APIs.**
 
-## Features
+Seamlessly learn Dutch vocabulary while reading - no account required, complete privacy protection, all AI processing happens locally in your browser.
 
-- **Smart Highlighting**: Highlights Dutch words from specific categories on webpages
-- **Interactive Tooltips**: Shows part of speech, English definitions, and word category on hover
-- **AI-Powered Learning**: Local AI generates examples, grammar analysis, and translations
-- **Multiple Categories**: Supports core, general, spoken, fiction, newspaper, and web vocabulary
-- **Flexible Scope**: Apply to all Dutch sites or selected websites only
-- **Privacy-First**: All AI processing happens locally in your browser
-- **No API Keys**: Uses Chrome's built-in AI APIs (no external services required)
+## ✨ Key Features
 
-## AI Features
+- 🎯 **Smart Highlighting**: Highlights Dutch words from curated frequency categories
+- 🤖 **AI-Powered Learning**: Real-time translation, grammar analysis, and example sentences
+- 🔐 **Privacy-First**: All processing happens locally - no external servers or data collection
+- ⚡ **Performance Optimized**: Lightweight with intelligent caching and timeout protection
+- 🌐 **Flexible Scope**: Apply to all websites or selected sites only
 
-- **Real-time Translation**: Streams translation as you hover over sentences
-- **Grammar Analysis**: Breaks down sentence structure, verbs, and difficulty points
-- **Example Sentences**: Generates contextual Dutch examples with English translations
-- **Performance Optimized**: Debounced requests, caching, and timeout protection
+## 🚀 Quick Start
 
-## Documentation
+### Installation
+1. Clone or download this repository
+2. Open Chrome → `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked" → select project folder
 
-- [Chrome AI APIs Integration Guide (English)](Chrome-AI-APIs-README-EN.md)
-- [Chrome AI APIs 集成指南 (中文)](Chrome-AI-APIs-README-CN.md)
+### Usage
+1. Browse any website (works best on Dutch content)
+2. Dutch words are automatically highlighted
+3. Hover over highlighted words for translations and grammar info
+4. Click extension icon to customize categories and settings
 
-## Installation
+## 🛠️ Troubleshooting
 
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable "Developer mode" by toggling the switch in the top right corner
-3. Click "Load unpacked" and select the `dutch_word_highlighter` folder
-4. The extension should now be installed and active (even without icons)
+- **No highlighting**: Check console for `[FlareLingo]` messages
+- **AI not working**: Requires Chrome 128+ with AI features enabled
+- **Installation issues**: Extension works without icons - ignore icon errors
 
-## Usage
+## � Technical Details
 
-1. Navigate to any website (including Dutch websites with .nl or .be domains)
-2. Dutch words from the selected category will be highlighted (default: core words)
-3. Hover over a highlighted word to see its part of speech, English definition, and word category
-4. Click the extension icon in the toolbar to open the settings popup
-5. Select a different category of words to highlight
-6. Choose whether to apply settings to "All websites" or "Selected websites only"
-7. If you choose "Selected websites only", you can add or remove websites from the list
-8. Click "Apply" to update the highlights on the current page
+- **Built with**: Chrome Extension Manifest V3, Vanilla JavaScript
+- **AI Integration**: Chrome's built-in AI APIs (`aiLanguageModel`, `aiTranslator`)
+- **Dictionary**: Curated Dutch frequency word lists with linguistic data
+- **Privacy**: All data stored locally, no external communication
 
-### Website Selection
+---
 
-The extension now supports two modes of operation:
-- **All websites**: Apply the same highlighting settings across all sites you visit
-- **Selected websites only**: Define a list of websites where highlighting should be active
-  - You can add multiple websites to the list
-  - Each website can have its own unique category settings
-  - For websites not in your list, no highlighting will be applied
-  - The current website is automatically suggested when you choose this option
+## 🚢 Distribution & Packaging
 
-## Troubleshooting
+### 📦 Creating a Distribution Package
 
-### Debug Mode
-The extension now has detailed console logging. Open your browser's Developer Tools (F12) and check the console for messages prefixed with `[Dutch Highlighter]` to see what's happening.
+Ready to share FlareLingo? Use our automated build script:
 
-### Installation Issues
-- **Missing Icon Error**: We've configured the extension to work without icons. You may see an error during installation, but it should still work.
-- If you still have issues, run this in the browser console after installing the extension:
-  ```javascript
-  checkExtensionStructure();
-  ```
+```bash
+# Make the build script executable (first time only)
+chmod +x ./build.sh
 
-### Runtime Issues
-- If words are not being highlighted, check the console for any errors
-- Verify the dictionary file is loaded by looking for log message: "Dictionary loaded successfully"
-- Check that you're on a website where the content script is running (inspect Network tab in Developer Tools)
+# Create distribution package
+./build.sh
+```
 
-## Dictionary Data
+This creates `flarelingo-reading-buddy.zip` containing only the essential extension files, ready for Chrome Web Store submission.
 
-The extension uses a JSON file containing Dutch words with their parts of speech, English definitions, and category flags. This file is placed in the `data` folder as `dutch_frequency_dictionary.json`.
+#### 📋 What's Included in the Package
+- ✅ `manifest.json` - Extension configuration
+- ✅ `popup.html` - User interface  
+- ✅ `js/` - All JavaScript logic and AI integration
+- ✅ `css/` - Styling and visual design
+- ✅ `images/` - Extension icons and assets
+- ✅ `data/dutch_frequency_dictionary.json` - Core vocabulary data
 
-## Development
+#### 🚫 What's Excluded
+- ❌ Development files (`tests/`, `raw_data/`, etc.)
+- ❌ Git metadata and version control files
+- ❌ Documentation and project notes
+- ❌ Build scripts and configuration
 
-The extension is built with:
-- Manifest Version 3
-- Plain JavaScript (no external libraries)
-- CSS for styling
-- HTML for the popup UI 
+---
 
-## Packaging for Distribution
+## 🏪 Chrome Web Store Publishing
 
-To create a package ready for submission to the Chrome Web Store:
+### 📝 Store Listing Information
 
-1. Make sure all your changes are committed and tested
-2. Run the provided build script:
+| 📋 Field | 📄 Content |
+|-----------|-------------|
+| **Name** | FlareLingo – Reading Language Buddy |
+| **Short Description** | Subtle inline Dutch vocabulary learning while you read any website |
+| **Category** | Education > Language Learning |
+| **Version** | 1.0.4 |
+
+### 📖 Full Store Description
+
+```
+🌟 FlareLingo transforms any webpage into an intelligent Dutch learning environment using Chrome's built-in AI.
+
+Perfect for international professionals, students, and Dutch language enthusiasts who want to build vocabulary while consuming authentic content.
+
+✨ KEY FEATURES:
+• Smart highlighting of Dutch words from curated frequency lists
+• AI-powered real-time translation and grammar analysis  
+• Interactive tooltips with definitions and linguistic context
+• Multiple vocabulary categories (core, general, fiction, news, web)
+• Flexible website targeting (all sites or custom selections)
+• Complete privacy - all processing happens locally in your browser
+
+🔐 PRIVACY-FIRST:
+• No account required, no data collection
+• Uses Chrome's built-in AI APIs - no external servers
+• All your learning data stays on your device
+
+🎯 PERFECT FOR:
+• International professionals working in Dutch environments
+• Students studying Dutch language and culture  
+• Expatriates navigating daily life in the Netherlands/Belgium
+• Anyone reading Dutch news, blogs, or professional content
+
+Transform your browsing into effortless vocabulary building!
+```
+
+### 🎨 Visual Assets Needed
+
+- **📱 Screenshots**: 1280×800 or 640×400 resolution
+  - Extension highlighting words on a Dutch news site
+  - Popup interface showing category selection
+  - Tooltip displaying word translation and grammar
+  - AI translation streaming in action
+
+- **🖼️ Icons**: Already included in required sizes (16×16, 48×48, 128×128)
+
+### 🔒 Privacy & Permissions
+
+#### Privacy Statement
+```
+FlareLingo respects your privacy:
+✅ No user data collection or transmission
+✅ All preferences stored locally using Chrome's storage API  
+✅ No external server communication
+✅ Dictionary data included within extension package
+✅ AI processing happens entirely in your browser
+```
+
+#### Permission Justifications
+
+| 🔑 Permission | 📝 Justification |
+|---------------|-------------------|
+| `storage` | Save user preferences for vocabulary categories and website settings |
+| `activeTab` | Access current tab content to highlight words and display translations |
+| `scripting` | Inject content script for word highlighting functionality |
+| `aiLanguageModel` | Use Chrome's built-in AI for grammar analysis and example generation |
+
+### 📋 Submission Requirements
+
+- ✅ Chrome Web Store Developer Account ($5 one-time fee)
+- ✅ Extension package (created with build script)
+- ✅ Privacy policy URL (if collecting any data)
+- ✅ Developer contact information
+- ✅ Store listing content and screenshots
+
+---
+
+## 👨‍💻 Development & Contributing
+
+### 🛠️ Local Development Setup
+
+### 🛠️ Local Development Setup
+
+1. **📥 Clone the Repository**
    ```bash
-   ./build.sh
+   git clone [repository-url]
+   cd FlareLingo-reading-language-buddy
    ```
-3. This will create a file named `dutch_word_highlight.zip` in your project root
-4. The zip file contains only the necessary files for the extension, following Chrome Web Store requirements
-5. Upload this zip file to the Chrome Web Store Developer Dashboard
 
-The build script automatically:
-- Creates a clean build directory
-- Copies only the extension files (manifest.json, HTML, JS, CSS, images, and data)
-- Packages them into a zip file
-- Excludes development files like tests, git data, and raw data
+2. **🔧 Load in Chrome**
+   - Open `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked" → select project folder
 
-### Manual Packaging (Alternative)
+3. **🧪 Test & Debug**
+   - Check console for `[FlareLingo]` messages
+   - Use the test files in `tests/` directory
+   - Modify code and reload extension
 
-If you need to manually package the extension:
-
-1. Create a new directory for the packaged extension
-2. Copy the following files and directories:
-   - manifest.json
-   - popup.html
-   - js/
-   - css/
-   - images/
-   - data/dutch_frequency_dictionary.json
-3. Zip the contents of this directory (not the directory itself)
-4. Upload the resulting zip file to the Chrome Web Store 
-
-## Publishing to Chrome Web Store
-
-To publish your extension to the Chrome Web Store, you will need the following:
-
-### Store Listing Information
-
-| Field | Content |
-|-------|---------|
-| Name | Dutch Vocabulary Highlighter |
-| Short Description | Highlights Dutch words on webpages with translations to aid language learning |
-| Category | Education |
-
-### Full Description
+### 📁 Project Structure
 
 ```
-Dutch Vocabulary Highlighter helps you learn Dutch vocabulary while browsing the web.
-
-The extension highlights Dutch words from various frequency categories (core, general, spoken, fiction, newspaper, web) on any webpage you visit. When you hover over a highlighted word, a tooltip shows its part of speech, English definition, and category.
-
-Key features:
-• Highlights Dutch words from your selected category on any webpage
-• Shows part of speech, English translations, and word categories in tooltips
-• Supports multiple vocabulary categories based on frequency lists
-• Apply highlighting globally or to selected websites only
-• Easy-to-use popup interface for customizing settings
-• Works on all websites, with special support for Dutch domains (.nl and .be)
-
-Perfect for Dutch language learners of all levels who want to build their vocabulary while browsing authentic Dutch content online!
+FlareLingo-reading-language-buddy/
+├── 📄 manifest.json           # Extension configuration
+├── 🖥️ popup.html             # User interface
+├── js/                       # Core functionality
+│   ├── 🤖 ai/               # AI integration layer
+│   ├── 🎯 content.js        # Webpage interaction
+│   ├── 🔧 background.js     # Extension lifecycle
+│   └── 🎨 popup.js          # UI logic
+├── css/                      # Styling
+├── data/                     # Dictionary & language data
+├── tests/                    # Development testing files
+└── docs/                     # Documentation
 ```
 
-### Visual Assets
+### 🤝 Contributing
 
-- **Icons**: The extension already includes icons in the required sizes (16x16, 48x48, 128x128)
-- **Screenshots**: You need to create at least one screenshot (1280×800 or 640×400 resolution)
-  
-  Suggested screenshots:
-  1. The extension highlighting Dutch words on a popular Dutch website
-  2. The popup interface showing category selection options
-  3. A tooltip showing a word's translation when hovering
-  4. The website selection interface
+We welcome contributions! Please:
+1. 🍴 Fork the repository
+2. 🌱 Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. 💾 Commit your changes (`git commit -m 'Add amazing feature'`)
+4. 📤 Push to the branch (`git push origin feature/amazing-feature`)
+5. 🔄 Open a Pull Request
 
-### Privacy Practices
+---
+
+## 🔮 Future Roadmap
+
+### 🎯 Short-term Goals
+- 🎵 **Audio Pronunciation**: Text-to-speech for Dutch pronunciation practice
+- 📊 **Progress Tracking**: Learning statistics and vocabulary mastery insights
+- 🔄 **Spaced Repetition**: Intelligent re-surfacing of learned words
+- 📱 **Mobile Support**: Adaptation for mobile browser extensions
+
+### 🌟 Long-term Vision  
+- 🌍 **Multi-language Support**: Extend to other European languages
+- 🧠 **Advanced Grammar**: Deep syntactic analysis with visual parse trees
+- 👥 **Community Features**: Share vocabulary lists and learning progress
+- 🎯 **Adaptive Learning**: AI-powered personalization based on individual patterns
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for complete details.
 
 ```
-This extension:
-- Does not collect any user data
-- Stores user preferences locally using Chrome's storage API
-- Does not transmit any data to external servers
-- All dictionary data is included within the extension package
+MIT License - Feel free to use, modify, and distribute!
 ```
 
-### Permissions Explanation
+---
 
-| Permission | Justification |
-|------------|---------------|
-| storage | Required to save user preferences such as selected word categories and website-specific settings |
-| activeTab | Needed to access and modify the content of the current tab to highlight words and display tooltips |
-| scripting | Used to inject the content script into pages to perform word highlighting |
+## 🙏 Acknowledgments
 
-### Additional Requirements
+- 🤖 **Chrome AI Team**: For pioneering browser-native AI capabilities
+- 📚 **Dutch Language Community**: For linguistic resources and frequency data
+- 🌍 **Open Source Community**: For inspiration and collaborative spirit
+- 🎓 **Language Learning Enthusiasts**: For feedback and feature suggestions
 
-- A developer account in the Chrome Web Store ($5 one-time fee)
-- A Privacy Policy URL (if applicable)
-- Developer contact information (email address) 
+---
 
+<div align="center">
 
-## License
+### 🌟 **Transform Your Reading into Learning with FlareLingo!** 🌟
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+*Built with ❤️ using Chrome's Built-in AI APIs, vanilla JavaScript, and a passion for breaking down language barriers.*
 
-MIT License
+**[⭐ Star us on GitHub](https://github.com/baiyuyu/FlareLingo-reading-language-buddy)** | **[📝 Report Issues](https://github.com/baiyuyu/FlareLingo-reading-language-buddy/issues)** | **[💬 Join Discussions](https://github.com/baiyuyu/FlareLingo-reading-language-buddy/discussions)**
+
+</div>
