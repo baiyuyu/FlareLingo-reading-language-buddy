@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "FlareLingo – Reading Language Buddy",
+  "version": "1.0.4",
+  "description": "FlareLingo: subtle inline language stimulus while you read.",
+  "permissions": ["storage", "activeTab", "scripting", "aiLanguageModel"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/Designer (5).png",
+      "48": "images/Designer (5).png",
+      "128": "images/Designer (5).png"
+    }
+  },
+  "icons": {
+    "16": "images/Designer (5).png",
+    "48": "images/Designer (5).png",
+    "128": "images/Designer (5).png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/ai/ai-core.js", "js/content.js"],
+      "css": ["css/highlighter.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["data/dutch_frequency_dictionary.json"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "trial_tokens": [
+    "A0QyP9RD9laZm1W6QSX8RIVBKGHOe7LW2DhQl9Srofd5M3wFJtOHtQW4wdXK2LYZtbE6qmjEfybgigcaLJQJbQUAAACBeyJvcmlnaW4iOiJodHRwczovL25vcy5ubDo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"
+  ]
+}
