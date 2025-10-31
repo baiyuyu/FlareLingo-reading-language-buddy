@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dutch Highlighter Test</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .test-section {
+      margin-bottom: 30px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    
+    .dutch-highlighted-word {
+      background-color: #fff2cc;
+      border-radius: 3px;
+      padding: 0 2px;
+      cursor: pointer;
+    }
+    
+    #debug {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dutch Highlighter Test</h1>
+  <p>This page tests the word highlighting functionality.</p>
+  
+  <div class="test-section">
+    <h2>Test Section 1: Basic Words</h2>
+    <p>Een huis is een gebouw. De man loopt naar het huis.</p>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test Section 2: Testing "een" Specifically</h2>
+    <p>Dit is een test. Een belangrijk woord is "een" in het Nederlands.</p>
+  </div>
+  
+  <div id="debug"></div>
+
+  <script>
+    // Global variables
+    let dictionary = {};
+    const currentCategory = 'whether_core';
+    const debugOutput = document.getElementById('debug');
+    
+    // Debug logger
+    function log(message) {
+      debugOutput.textContent += message + '\n';
+      console.log(message);
+    }
+    
+    // Function to highlight words in a text node
+    function highlightWordsInNode(textNode) {
+      if (!textNode || textNode.nodeType !== Node.TEXT_NODE) {
+        return 0;
+      }
+      
+      const text = textNode.nodeValue;
+      if (!text || text.trim() === '') return 0;
+      
+      // Simple word boundary regex
+      const wordRegex = /\b[a-zA-ZÀ-ÿ]+\b/g;
+      let match;
+      let lastIndex = 0;
+      let fragments = [];
+      let wordsHighlighted = 0;
+      
+      while ((match = wordRegex.exec(text)) !== null) {
+        const word = match[0].toLowerCase();
+        const dictEntry = dictionary[word];
+        
+        log(`Checking word: "${word}" - exists in dictionary: ${!!dictEntry}`);
+        if (dictEntry) {
+          log(`  - whether_core: ${dictEntry.whether_core} (${typeof dictEntry.whether_core})`);
+          log(`  - dictEntry[currentCategory]: ${dictEntry[currentCategory]} (${typeof dictEntry[currentCategory]})`);
+          log(`  - Condition: ${!!(dictEntry && dictEntry[currentCategory])}`);
+        }
+        
+        // Check if word exists in dictionary and matches the selected category
+        if (dictEntry && dictEntry[currentCategory]) {
+          log(`  - HIGHLIGHTING WORD: "${word}"`);
+          
+          // Add text before the match
+          fragments.push(document.createTextNode(text.substring(lastIndex, match.index)));
+          
+          // Create highlighted span
+          const highlightSpan = document.createElement('span');
+          highlightSpan.className = 'dutch-highlighted-word';
+          highlightSpan.textContent = match[0];
+          highlightSpan.dataset.word = word;
+          highlightSpan.dataset.pos = dictEntry.pos || '';
+          highlightSpan.dataset.definition = dictEntry.definition || '';
+          
+          fragments.push(highlightSpan);
+          wordsHighlighted++;
+          
+          lastIndex = match.index + match[0].length;
+        } else {
+          log(`  - NOT highlighting word: "${word}"`);
+        }
+      }
+      
+      // Add remaining text
+      if (lastIndex < text.length) {
+        fragments.push(document.createTextNode(text.substring(lastIndex)));
+      }
+      
+      // Replace the text node with fragments if we have highlights
+      if (fragments.length > 1) {
+        const parentNode = textNode.parentNode;
+        fragments.forEach(fragment => {
+          parentNode.insertBefore(fragment, textNode);
+        });
+        parentNode.removeChild(textNode);
+      }
+      
+      return wordsHighlighted;
+    }
+    
+    // Function to traverse the DOM and process text nodes
+    function processTextNodes(node) {
+      // Skip certain elements
+      const tagsToSkip = ['SCRIPT', 'STYLE', 'CODE', 'PRE', 'TEXTAREA', 'INPUT', 'BUTTON', 'SELECT', 'OPTION'];
+      
+      if (tagsToSkip.includes(node.nodeName)) {
+        return 0;
+      }
+      
+      // Process text nodes
+      if (node.nodeType === Node.TEXT_NODE) {
+        return highlightWordsInNode(node) || 0;
+      }
+      
+      // Skip nodes with user interaction or already highlighted
+      if (node.nodeType === Node.ELEMENT_NODE && 
+          (node.classList.contains('dutch-highlighted-word'))) {
+        return 0;
+      }
+      
+      // Process child nodes
+      let totalHighlighted = 0;
+      for (let i = 0; i < node.childNodes.length; i++) {
+        totalHighlighted += processTextNodes(node.childNodes[i]) || 0;
+      }
+      
+      return totalHighlighted;
+    }
+    
+    // Function to remove highlights
+    function removeHighlights() {
+      log('Removing previous highlights');
+      const highlights = document.querySelectorAll('.dutch-highlighted-word');
+      
+      highlights.forEach(highlight => {
+        // Replace the highlight with its text content
+        const textNode = document.createTextNode(highlight.textContent);
+        highlight.parentNode.replaceChild(textNode, highlight);
+      });
+    }
+    
+    // Function to highlight words
+    function highlightWords() {
+      log(`Highlighting words for category: ${currentCategory}`);
+      
+      // First remove existing highlights
+      removeHighlights();
+      
+      // Process the document body, excluding the debug area
+      const sections = document.querySelectorAll('.test-section');
+      let totalHighlighted = 0;
+      
+      sections.forEach(section => {
+        totalHighlighted += processTextNodes(section);
+      });
+      
+      log(`Highlighted ${totalHighlighted} words on the page`);
+    }
+    
+    // Load mini dictionary just for testing with a few words
+    function loadMiniDictionary() {
+      // Mini dictionary as JSON directly
+      dictionary = {
+        "de": {
+          "pos": "art",
+          "definition": "the",
+          "whether_core": true,
+          "whether_general": false,
+          "whether_spoken": false,
+          "whether_fiction": false,
+          "whether_newspapers": false,
+          "whether_web": false
+        },
+        "een": {
+          "pos": "art",
+          "definition": "a",
+          "whether_core": true,
+          "whether_general": false,
+          "whether_spoken": false,
+          "whether_fiction": false,
+          "whether_newspapers": false,
+          "whether_web": false
+        },
+        "voor": {
+          "pos": "prep",
+          "definition": "a) for b) in front of",
+          "whether_core": true,
+          "whether_general": false,
+          "whether_spoken": false,
+          "whether_fiction": false,
+          "whether_newspapers": false,
+          "whether_web": false
+        },
+        "het": {
+          "pos": "1) art 2) pron",
+          "definition": "1) the 2) it",
+          "whether_core": true,
+          "whether_general": false,
+          "whether_spoken": false,
+          "whether_fiction": false,
+          "whether_newspapers": false,
+          "whether_web": false
+        },
+        "t": {
+          "pos": "1) art 2) pron",
+          "definition": "1) the 2) it",
+          "whether_core": true,
+          "whether_general": false,
+          "whether_spoken": false,
+          "whether_fiction": false,
+          "whether_newspapers": false,
+          "whether_web": false
+        },
+        "van": {
+          "pos": "prep",
+          "definition": "of",
+          "whether_core": true,
+          "whether_general": false,
+          "whether_spoken": false,
+          "whether_fiction": false,
+          "whether_newspapers": false,
+          "whether_web": false
+        }
+      };
+      
+      log('Mini dictionary loaded');
+      
+      // Debug dictionary specifically for "een"
+      const eenEntry = dictionary['een'];
+      if (eenEntry) {
+        log(`\nDEBUG for word "een":`);
+        log(`  Full entry: ${JSON.stringify(eenEntry)}`);
+        log(`  whether_core: ${eenEntry.whether_core} (${typeof eenEntry.whether_core})`);
+        log(`  Using bracket notation: ${eenEntry['whether_core']} (${typeof eenEntry['whether_core']})`);
+        log(`  dictionary["een"][${currentCategory}]: ${dictionary['een'][currentCategory]}`);
+        log(`  Condition check: ${!!(eenEntry && eenEntry[currentCategory])}`);
+      } else {
+        log(`\nERROR: Word "een" is missing from dictionary!`);
+      }
+    }
+    
+    // Initialize
+    function init() {
+      log('Initializing test...');
+      loadMiniDictionary();
+      highlightWords();
+    }
+    
+    // Run initialization
+    init();
+  </script>
+</body>
+</html> 
+</html> 

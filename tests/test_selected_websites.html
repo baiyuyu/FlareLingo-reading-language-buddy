@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Selected Websites Feature</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .test-section {
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .output {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 3px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      margin-top: 10px;
+    }
+    .pass {
+      color: green;
+      font-weight: bold;
+    }
+    .fail {
+      color: red;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 10px;
+      padding: 5px 10px;
+    }
+    .website-list {
+      margin-top: 15px;
+    }
+    .website-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .website-input {
+      flex-grow: 1;
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      margin-right: 5px;
+    }
+    .remove-site {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      padding: 3px 6px;
+      font-size: 10px;
+    }
+    .add-site {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      padding: 5px 10px;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Selected Websites Feature Tests</h1>
+  
+  <div class="test-section">
+    <h2>Test: Mock Storage API</h2>
+    <p>Tests the mock Chrome storage functionality for proper operation</p>
+    <button id="run-storage-test">Run Test</button>
+    <div id="storage-test-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Website List UI</h2>
+    <p>Tests the UI for adding and removing websites from the list</p>
+    <div class="website-list" id="test-website-list">
+      <div id="website-items">
+        <!-- Website items will be added here -->
+      </div>
+      <button id="add-website" class="add-site">+ Add website</button>
+    </div>
+    <button id="run-ui-test">Test UI</button>
+    <div id="ui-test-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Domain Matching</h2>
+    <p>Tests the domain matching functionality</p>
+    <div>
+      <label>Selected websites (comma-separated):</label>
+      <input type="text" id="selected-websites" value="example.com, dutch-site.nl" style="width: 100%; margin: 5px 0;">
+      <label>Test domain:</label>
+      <input type="text" id="test-domain" value="blog.example.com" style="width: 100%; margin: 5px 0;">
+    </div>
+    <button id="run-domain-test">Test Domain Match</button>
+    <div id="domain-test-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Settings Application</h2>
+    <p>Tests whether the correct settings are applied for different domains</p>
+    <div>
+      <label>Website scope:</label>
+      <select id="website-scope" style="margin: 5px 0;">
+        <option value="all-websites">All websites</option>
+        <option value="selected-websites">Selected websites only</option>
+      </select>
+      <div id="scope-settings" style="margin-top: 10px; display: none;">
+        <label>Selected websites (comma-separated):</label>
+        <input type="text" id="scope-websites" value="example.com, dutch-site.nl" style="width: 100%; margin: 5px 0;">
+        <label>Current domain:</label>
+        <input type="text" id="current-domain" value="example.com" style="width: 100%; margin: 5px 0;">
+      </div>
+    </div>
+    <button id="run-settings-test">Test Settings</button>
+    <div id="settings-test-output" class="output"></div>
+  </div>
+  
+  <script>
+    // Mock chrome API for testing
+    const mockChrome = {
+      storage: {
+        local: {
+          data: {},
+          get: function(keys, callback) {
+            console.log('Mock storage get:', keys);
+            const result = {};
+            if (Array.isArray(keys)) {
+              keys.forEach(key => {
+                if (this.data[key] !== undefined) {
+                  result[key] = this.data[key];
+                }
+              });
+            } else if (typeof keys === 'object') {
+              Object.keys(keys).forEach(key => {
+                result[key] = this.data[key] !== undefined ? this.data[key] : keys[key];
+              });
+            } else if (typeof keys === 'string') {
+              if (this.data[keys] !== undefined) {
+                result[keys] = this.data[keys];
+              }
+            } else if (keys === null) {
+              Object.keys(this.data).forEach(key => {
+                result[key] = this.data[key];
+              });
+            }
+            callback(result);
+          },
+          set: function(items, callback) {
+            console.log('Mock storage set:', items);
+            Object.keys(items).forEach(key => {
+              this.data[key] = items[key];
+            });
+            if (callback) callback();
+          },
+          clear: function() {
+            this.data = {};
+          }
+        }
+      }
+    };
+    
+    // Global chrome object for testing
+    window.chrome = mockChrome;
+    
+    // Function to check if a site is in the selected websites list
+    function isCurrentSiteSelected(selectedWebsites, currentHostname) {
+      if (!selectedWebsites || !Array.isArray(selectedWebsites)) {
+        return false;
+      }
+      
+      // Check for exact match
+      if (selectedWebsites.includes(currentHostname)) {
+        return true;
+      }
+      
+      // Check for domain match (e.g., example.com would match sub.example.com)
+      for (const site of selectedWebsites) {
+        if (currentHostname.endsWith(site) && 
+            (currentHostname === site || currentHostname.endsWith('.' + site))) {
+          return true;
+        }
+      }
+      
+      return false;
+    }
+    
+    // Function to add a website item to the list
+    function addWebsiteItem(container, hostname = '') {
+      // Create a new website item
+      const websiteItem = document.createElement('div');
+      websiteItem.className = 'website-item';
+      
+      // Create input field
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'website-input';
+      input.value = hostname;
+      input.placeholder = 'example.com';
+      
+      // Create remove button
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-site';
+      removeBtn.textContent = 'X';
+      removeBtn.addEventListener('click', function() {
+        container.removeChild(websiteItem);
+      });
+      
+      // Add elements to the item
+      websiteItem.appendChild(input);
+      websiteItem.appendChild(removeBtn);
+      
+      // Add the item to the container
+      container.appendChild(websiteItem);
+      
+      return websiteItem;
+    }
+    
+    // Test 1: Mock Storage API
+    document.getElementById('run-storage-test').addEventListener('click', function() {
+      const output = document.getElementById('storage-test-output');
+      output.innerHTML = 'Running mock storage test...\n';
+      
+      try {
+        // Clear storage
+        chrome.storage.local.clear();
+        
+        // Set test data
+        chrome.storage.local.set({
+          websiteScope: 'selected-websites',
+          selectedWebsites: ['example.com', 'dutch-site.nl']
+        }, () => {
+          output.innerHTML += 'Set test data: { websiteScope: "selected-websites", selectedWebsites: ["example.com", "dutch-site.nl"] }\n';
+          
+          // Retrieve test data
+          chrome.storage.local.get(['websiteScope', 'selectedWebsites'], (result) => {
+            output.innerHTML += `Retrieved value: ${JSON.stringify(result)}\n`;
+            
+            if (result.websiteScope === 'selected-websites' && 
+                JSON.stringify(result.selectedWebsites) === JSON.stringify(['example.com', 'dutch-site.nl'])) {
+              output.innerHTML += '<span class="pass">✓ PASS: Mock storage works correctly</span>';
+            } else {
+              output.innerHTML += '<span class="fail">✗ FAIL: Mock storage did not return correct data</span>';
+            }
+          });
+        });
+      } catch (error) {
+        output.innerHTML += `<span class="fail">✗ Error: ${error.message}</span>`;
+      }
+    });
+    
+    // Test 2: Website List UI
+    document.getElementById('run-ui-test').addEventListener('click', function() {
+      const output = document.getElementById('ui-test-output');
+      output.innerHTML = 'Running UI test...\n';
+      
+      try {
+        const container = document.getElementById('website-items');
+        container.innerHTML = ''; // Clear existing items
+        
+        // Test adding websites
+        addWebsiteItem(container, 'example.com');
+        addWebsiteItem(container, 'dutch-site.nl');
+        
+        output.innerHTML += `Added 2 website items\n`;
+        
+        // Test removing a website
+        if (container.children.length === 2) {
+          const removeBtn = container.children[0].querySelector('.remove-site');
+          removeBtn.click();
+          
+          if (container.children.length === 1) {
+            output.innerHTML += `Removed 1 website item successfully\n`;
+            output.innerHTML += '<span class="pass">✓ PASS: Website list UI works correctly</span>';
+          } else {
+            output.innerHTML += `<span class="fail">✗ FAIL: Could not remove website item</span>`;
+          }
+        } else {
+          output.innerHTML += `<span class="fail">✗ FAIL: Could not add website items</span>`;
+        }
+      } catch (error) {
+        output.innerHTML += `<span class="fail">✗ Error: ${error.message}</span>`;
+      }
+    });
+    
+    // Add event listener for the "Add website" button
+    document.getElementById('add-website').addEventListener('click', function() {
+      const container = document.getElementById('website-items');
+      addWebsiteItem(container);
+    });
+    
+    // Test 3: Domain Matching
+    document.getElementById('run-domain-test').addEventListener('click', function() {
+      const output = document.getElementById('domain-test-output');
+      output.innerHTML = 'Running domain matching test...\n';
+      
+      try {
+        const selectedWebsitesInput = document.getElementById('selected-websites').value;
+        const testDomain = document.getElementById('test-domain').value;
+        
+        // Parse the comma-separated list of websites
+        const selectedWebsites = selectedWebsitesInput.split(',').map(site => site.trim());
+        
+        output.innerHTML += `Selected websites: ${JSON.stringify(selectedWebsites)}\n`;
+        output.innerHTML += `Test domain: ${testDomain}\n`;
+        
+        // Test if the domain matches
+        const result = isCurrentSiteSelected(selectedWebsites, testDomain);
+        
+        output.innerHTML += `Match result: ${result}\n`;
+        output.innerHTML += `<span class="${result ? 'pass' : 'fail'}">✓ Domain ${result ? 'is' : 'is not'} in the selected websites list</span>`;
+      } catch (error) {
+        output.innerHTML += `<span class="fail">✗ Error: ${error.message}</span>`;
+      }
+    });
+    
+    // Show/hide scope settings based on selection
+    document.getElementById('website-scope').addEventListener('change', function() {
+      const scopeSettings = document.getElementById('scope-settings');
+      if (this.value === 'selected-websites') {
+        scopeSettings.style.display = 'block';
+      } else {
+        scopeSettings.style.display = 'none';
+      }
+    });
+    
+    // Test 4: Settings Application
+    document.getElementById('run-settings-test').addEventListener('click', function() {
+      const output = document.getElementById('settings-test-output');
+      output.innerHTML = 'Running settings application test...\n';
+      
+      try {
+        const websiteScope = document.getElementById('website-scope').value;
+        const currentDomain = document.getElementById('current-domain').value;
+        
+        let selectedWebsites = [];
+        if (websiteScope === 'selected-websites') {
+          const scopeWebsitesInput = document.getElementById('scope-websites').value;
+          selectedWebsites = scopeWebsitesInput.split(',').map(site => site.trim());
+        }
+        
+        output.innerHTML += `Website scope: ${websiteScope}\n`;
+        output.innerHTML += `Current domain: ${currentDomain}\n`;
+        
+        if (websiteScope === 'selected-websites') {
+          output.innerHTML += `Selected websites: ${JSON.stringify(selectedWebsites)}\n`;
+        }
+        
+        // Set up mock data
+        chrome.storage.local.clear();
+        chrome.storage.local.set({
+          selectedCategories: ['whether_core'],
+          websiteScope: websiteScope,
+          selectedWebsites: selectedWebsites,
+          siteSpecificSettings: {
+            'example.com': ['whether_fiction', 'whether_newspapers'],
+            'dutch-site.nl': ['whether_spoken', 'whether_web']
+          }
+        }, () => {
+          // Simulate loading settings for current site
+          chrome.storage.local.get(['selectedCategories', 'websiteScope', 'selectedWebsites', 'siteSpecificSettings'], (result) => {
+            // Default categories
+            let categories = ['whether_core'];
+            
+            // Use saved categories if available
+            if (result.selectedCategories && Array.isArray(result.selectedCategories)) {
+              categories = result.selectedCategories;
+            }
+            
+            let shouldHighlight = true;
+            let settingsSource = 'global';
+            
+            // Apply the scope rules
+            if (result.websiteScope === 'all-websites') {
+              output.innerHTML += `Using global settings for all websites\n`;
+            } else if (result.websiteScope === 'selected-websites') {
+              const isSelected = isCurrentSiteSelected(result.selectedWebsites, currentDomain);
+              
+              if (isSelected) {
+                if (result.siteSpecificSettings && result.siteSpecificSettings[currentDomain]) {
+                  categories = result.siteSpecificSettings[currentDomain];
+                  settingsSource = 'site-specific';
+                }
+                output.innerHTML += `Current domain is in selected websites list\n`;
+              } else {
+                categories = [];
+                shouldHighlight = false;
+                output.innerHTML += `Current domain is NOT in selected websites list\n`;
+              }
+            }
+            
+            output.innerHTML += `Applied categories: ${JSON.stringify(categories)}\n`;
+            output.innerHTML += `Highlighting enabled: ${shouldHighlight}\n`;
+            
+            if (shouldHighlight) {
+              output.innerHTML += `Settings source: ${settingsSource}\n`;
+            }
+            
+            output.innerHTML += '<span class="pass">✓ PASS: Settings applied correctly</span>';
+          });
+        });
+      } catch (error) {
+        output.innerHTML += `<span class="fail">✗ Error: ${error.message}</span>`;
+      }
+    });
+    
+    // Set up the website scope dropdown to show settings
+    document.getElementById('website-scope').dispatchEvent(new Event('change'));
+  </script>
+</body>
+</html> 

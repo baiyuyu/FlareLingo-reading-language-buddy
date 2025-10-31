@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Website Scope Feature</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .test-section {
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .output {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 3px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      margin-top: 10px;
+    }
+    .pass {
+      color: green;
+      font-weight: bold;
+    }
+    .fail {
+      color: red;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 10px;
+      padding: 5px 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Website Scope Feature Tests</h1>
+  
+  <div class="test-section">
+    <h2>Test: Mock Storage API</h2>
+    <p>Tests the mock Chrome storage functionality for proper operation</p>
+    <button id="run-storage-test">Run Test</button>
+    <div id="storage-test-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Global Website Settings</h2>
+    <p>Tests if global website settings work correctly</p>
+    <button id="run-global-test">Run Test</button>
+    <div id="global-test-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Site-Specific Settings</h2>
+    <p>Tests if site-specific settings work correctly</p>
+    <button id="run-site-specific-test">Run Test</button>
+    <div id="site-specific-test-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test: Fallback to Global Settings</h2>
+    <p>Tests fallback to global settings when no site-specific settings exist</p>
+    <button id="run-fallback-test">Run Test</button>
+    <div id="fallback-test-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Run All Tests</h2>
+    <button id="run-all-tests">Run All Tests</button>
+    <div id="all-tests-output" class="output"></div>
+  </div>
+  
+  <script>
+    // Mock chrome API for testing
+    const mockChrome = {
+      storage: {
+        local: {
+          data: {},
+          get: function(keys, callback) {
+            console.log('Mock storage get:', keys);
+            const result = {};
+            if (Array.isArray(keys)) {
+              keys.forEach(key => {
+                if (this.data[key] !== undefined) {
+                  result[key] = this.data[key];
+                }
+              });
+            } else if (typeof keys === 'object') {
+              Object.keys(keys).forEach(key => {
+                result[key] = this.data[key] !== undefined ? this.data[key] : keys[key];
+              });
+            } else if (typeof keys === 'string') {
+              if (this.data[keys] !== undefined) {
+                result[keys] = this.data[keys];
+              }
+            } else if (keys === null) {
+              Object.keys(this.data).forEach(key => {
+                result[key] = this.data[key];
+              });
+            }
+            callback(result);
+          },
+          set: function(items, callback) {
+            console.log('Mock storage set:', items);
+            Object.keys(items).forEach(key => {
+              this.data[key] = items[key];
+            });
+            if (callback) callback();
+          },
+          clear: function() {
+            this.data = {};
+          }
+        }
+      }
+    };
+    
+    // Global chrome object for testing
+    window.chrome = mockChrome;
+    
+    // Mock location
+    const originalLocation = window.location;
+    let mockLocation = { hostname: 'example.com' };
+    
+    // Method to set mock hostname
+    function setMockHostname(hostname) {
+      mockLocation.hostname = hostname;
+      return mockLocation;
+    }
+    
+    // Override window.location
+    Object.defineProperty(window, 'location', {
+      get: function() {
+        return mockLocation;
+      }
+    });
+    
+    // Function to simulate loading categories for a specific site
+    async function loadCategoriesForSite(hostname) {
+      return new Promise((resolve) => {
+        chrome.storage.local.get(['selectedCategories', 'websiteScope', 'siteSpecificSettings'], (result) => {
+          // Default to core category if nothing is saved
+          let categories = ['whether_core'];
+          
+          // If there are saved categories, use them as default
+          if (result.selectedCategories && Array.isArray(result.selectedCategories)) {
+            categories = result.selectedCategories;
+          }
+          
+          // Check if we're using site-specific settings
+          if (result.websiteScope === 'current-website' && 
+              result.siteSpecificSettings && 
+              result.siteSpecificSettings[hostname]) {
+            // Use the site-specific categories
+            categories = result.siteSpecificSettings[hostname];
+          }
+          
+          resolve(categories);
+        });
+      });
+    }
+    
+    // Test 1: Mock Storage API
+    document.getElementById('run-storage-test').addEventListener('click', async function() {
+      const output = document.getElementById('storage-test-output');
+      output.innerHTML = 'Running mock storage test...\n';
+      
+      try {
+        // Clear storage
+        chrome.storage.local.clear();
+        
+        // Set test data
+        chrome.storage.local.set({ testKey: 'testValue' }, () => {
+          output.innerHTML += 'Set test data: { testKey: "testValue" }\n';
+          
+          // Retrieve test data
+          chrome.storage.local.get(['testKey'], (result) => {
+            output.innerHTML += `Retrieved value: ${JSON.stringify(result)}\n`;
+            
+            if (result.testKey === 'testValue') {
+              output.innerHTML += '<span class="pass">✓ PASS: Mock storage works correctly</span>';
+            } else {
+              output.innerHTML += '<span class="fail">✗ FAIL: Mock storage did not return correct data</span>';
+            }
+          });
+        });
+      } catch (error) {
+        output.innerHTML += `<span class="fail">✗ Error: ${error.message}</span>`;
+      }
+    });
+    
+    // Test 2: Global Website Settings
+    document.getElementById('run-global-test').addEventListener('click', async function() {
+      const output = document.getElementById('global-test-output');
+      output.innerHTML = 'Running global settings test...\n';
+      
+      try {
+        // Setup test conditions
+        chrome.storage.local.clear();
+        chrome.storage.local.set({
+          selectedCategories: ['whether_core', 'whether_general'],
+          websiteScope: 'all-websites',
+          siteSpecificSettings: {
+            'example.com': ['whether_fiction']
+          }
+        }, async () => {
+          // Set hostname
+          setMockHostname('example.com');
+          output.innerHTML += `Current hostname: ${window.location.hostname}\n`;
+          
+          // Load categories
+          const categories = await loadCategoriesForSite(window.location.hostname);
+          output.innerHTML += `Loaded categories: ${JSON.stringify(categories)}\n`;
+          
+          // Expected result (global settings should be used)
+          const expected = ['whether_core', 'whether_general'];
+          const expectedStr = JSON.stringify(expected.sort());
+          const actualStr = JSON.stringify(categories.sort());
+          
+          if (expectedStr === actualStr) {
+            output.innerHTML += `<span class="pass">✓ PASS: Global settings applied correctly</span>`;
+          } else {
+            output.innerHTML += `<span class="fail">✗ FAIL: Expected ${expectedStr}, got ${actualStr}</span>`;
+          }
+        });
+      } catch (error) {
+        output.innerHTML += `<span class="fail">✗ Error: ${error.message}</span>`;
+      }
+    });
+    
+    // Test 3: Site-Specific Settings
+    document.getElementById('run-site-specific-test').addEventListener('click', async function() {
+      const output = document.getElementById('site-specific-test-output');
+      output.innerHTML = 'Running site-specific settings test...\n';
+      
+      try {
+        // Setup test conditions
+        chrome.storage.local.clear();
+        chrome.storage.local.set({
+          selectedCategories: ['whether_core'],
+          websiteScope: 'current-website',
+          siteSpecificSettings: {
+            'example.com': ['whether_fiction', 'whether_newspapers']
+          }
+        }, async () => {
+          // Set hostname
+          setMockHostname('example.com');
+          output.innerHTML += `Current hostname: ${window.location.hostname}\n`;
+          
+          // Load categories
+          const categories = await loadCategoriesForSite(window.location.hostname);
+          output.innerHTML += `Loaded categories: ${JSON.stringify(categories)}\n`;
+          
+          // Expected result (site-specific settings should be used)
+          const expected = ['whether_fiction', 'whether_newspapers'];
+          const expectedStr = JSON.stringify(expected.sort());
+          const actualStr = JSON.stringify(categories.sort());
+          
+          if (expectedStr === actualStr) {
+            output.innerHTML += `<span class="pass">✓ PASS: Site-specific settings applied correctly</span>`;
+          } else {
+            output.innerHTML += `<span class="fail">✗ FAIL: Expected ${expectedStr}, got ${actualStr}</span>`;
+          }
+        });
+      } catch (error) {
+        output.innerHTML += `<span class="fail">✗ Error: ${error.message}</span>`;
+      }
+    });
+    
+    // Test 4: Fallback to Global Settings
+    document.getElementById('run-fallback-test').addEventListener('click', async function() {
+      const output = document.getElementById('fallback-test-output');
+      output.innerHTML = 'Running fallback test...\n';
+      
+      try {
+        // Setup test conditions
+        chrome.storage.local.clear();
+        chrome.storage.local.set({
+          selectedCategories: ['whether_core', 'whether_general'],
+          websiteScope: 'current-website',
+          siteSpecificSettings: {
+            'other.com': ['whether_fiction']
+          }
+        }, async () => {
+          // Set hostname to a site without specific settings
+          setMockHostname('example.com');
+          output.innerHTML += `Current hostname: ${window.location.hostname}\n`;
+          
+          // Load categories
+          const categories = await loadCategoriesForSite(window.location.hostname);
+          output.innerHTML += `Loaded categories: ${JSON.stringify(categories)}\n`;
+          
+          // Expected result (global settings should be used as fallback)
+          const expected = ['whether_core', 'whether_general'];
+          const expectedStr = JSON.stringify(expected.sort());
+          const actualStr = JSON.stringify(categories.sort());
+          
+          if (expectedStr === actualStr) {
+            output.innerHTML += `<span class="pass">✓ PASS: Fallback to global settings works correctly</span>`;
+          } else {
+            output.innerHTML += `<span class="fail">✗ FAIL: Expected ${expectedStr}, got ${actualStr}</span>`;
+          }
+        });
+      } catch (error) {
+        output.innerHTML += `<span class="fail">✗ Error: ${error.message}</span>`;
+      }
+    });
+    
+    // Run all tests
+    document.getElementById('run-all-tests').addEventListener('click', function() {
+      document.getElementById('run-storage-test').click();
+      setTimeout(() => document.getElementById('run-global-test').click(), 500);
+      setTimeout(() => document.getElementById('run-site-specific-test').click(), 1000);
+      setTimeout(() => document.getElementById('run-fallback-test').click(), 1500);
+      
+      document.getElementById('all-tests-output').innerHTML = 'Running all tests sequentially...';
+    });
+  </script>
+</body>
+</html> 

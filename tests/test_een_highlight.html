@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test for Dutch Word Highlighter - "een" Issue</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 30px;
+    }
+    .test-section {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    h1, h2 {
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Test for Dutch Word Highlighter</h1>
+  <p>This page is to test the issue where "een" is not being highlighted when "Core words" is selected.</p>
+  
+  <div class="test-section">
+    <h2>Test with "een" and other core words</h2>
+    <p>Dit is een test. Het woord "een" zou gemarkeerd moeten worden.</p>
+    <p>Andere core woorden zoals "de", "het", "voor", en "van" zouden ook gemarkeerd moeten worden.</p>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test with more context</h2>
+    <p>Er is een probleem met de highlighter. Een belangrijk woord wordt niet gemarkeerd.</p>
+    <p>Hopelijk zal een oplossing snel gevonden worden.</p>
+  </div>
+</body>
+</html> 
